@@ -20,23 +20,28 @@ jobs:
         poetry install
     - name: Run linter
       run: |
-        poetry run flake8 .
+        poetry run flake8 src/
     - name: Run tests
       run: |
         poetry run pytest tests/
     - name: Prepare data
       run: |
-        poetry run python scripts/prepare_data.py
+        poetry run python src/data/Churns_Modelling.py
     - name: Train model
       run: |
-        poetry run python scripts/train_model.py
+        poetry run python src/models/mixture_of_agents.py
     - name: Evaluate model
       run: |
-        poetry run python scripts/evaluate_model.py
+        poetry run python src/models/prediction.py
     - name: Log model to MLflow
       run: |
-        poetry run python scripts/log_model.py
+        poetry run python src/main.py --log-model
+    - name: Run Streamlit app (for testing)
+      run: |
+        poetry run streamlit run src/app.py &
+        sleep 10
+        kill $!
     - name: Deploy model (if on main branch)
       if: github.ref == 'refs/heads/main'
       run: |
-        poetry run python scripts/deploy_model.py
+        poetry run python src/deployment/deploy_model.py
