@@ -11,6 +11,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from src.utils.decorators import timer_decorator, log_decorator, error_handler
 
 
+
 class MixtureOfAgents(BaseEstimator, ClassifierMixin):
     def __init__(self, models=None, weights=None, experiment_name="MOA_Experiment", data_dir="../data"):
         self.models = models or []
