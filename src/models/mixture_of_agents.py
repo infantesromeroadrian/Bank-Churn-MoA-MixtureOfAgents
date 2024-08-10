@@ -146,3 +146,12 @@ class MixtureOfAgents(BaseEstimator, ClassifierMixin):
                 mlflow.log_metric(metric_name, metric_value)
 
         return metrics
+
+    def save(self, path):
+        """Guarda el modelo usando MLflow"""
+        mlflow.sklearn.save_model(self, path)
+
+    @classmethod
+    def load(cls, path):
+        """Carga el modelo usando MLflow"""
+        return mlflow.sklearn.load_model(path)
