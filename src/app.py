@@ -22,14 +22,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-# Cargar o entrenar el modelo
 @st.cache_resource
 def load_or_train_model():
-    # Obtener la ruta del directorio actual
     current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Construir las rutas relativas al directorio actual
     model_path = os.path.join(current_dir, "..", "models", "moa_model_version_1")
     data_prep_path = os.path.join(current_dir, "..", "models", "data_preparation.pkl")
 
@@ -46,12 +41,9 @@ def load_or_train_model():
         st.warning("No se encontró un modelo existente. Se entrenará un nuevo modelo.")
         logger.warning("No se encontró un modelo existente. Se entrenará un nuevo modelo.")
 
-    # Si no se pudo cargar el modelo, entrenar uno nuevo
     return train_new_model()
 
-
 def train_new_model():
-    # Cargar y preparar los datos
     data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw_data",
                              "Churn_Modelling.csv")
     if not os.path.exists(data_path):
@@ -63,13 +55,11 @@ def train_new_model():
     data_prep = DataPreparation(data)
     prepared_data = data_prep.prepare_data().get_prepared_data()
 
-    # Entrenar el modelo
     moa = MixtureOfAgents()
     X = prepared_data.drop('Exited', axis=1)
     y = prepared_data['Exited']
     moa.fit(X, y)
 
-    # Guardar el modelo y el preprocesador
     model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models", "moa_model_new")
     data_prep_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models",
                                   "data_preparation_new.pkl")
@@ -80,11 +70,16 @@ def train_new_model():
 
     return Prediction(model_path, data_prep_path)
 
+def align_columns(prepared_data, expected_columns):
+    # Asegurar que las columnas estén alineadas con el modelo
+    for col in expected_columns:
+        if col not in prepared_data.columns:
+            prepared_data[col] = 0  # O un valor por defecto que consideres adecuado
 
-# Inicializar TogetherAI
+    # Reordenar las columnas para que coincidan con el orden esperado
+    return prepared_data[expected_columns]
+
 together_ai = TogetherAIIntegration()
-
-# Cargar o entrenar el modelo
 prediction_model = load_or_train_model()
 
 st.title('Predicción de Abandono de Clientes y Asistente IA')
@@ -92,7 +87,6 @@ st.title('Predicción de Abandono de Clientes y Asistente IA')
 if prediction_model is None:
     st.error("No se pudo cargar ni entrenar el modelo. Por favor, verifica los archivos de datos y las rutas.")
 else:
-    # Crear inputs para las características del cliente
     st.header('Ingrese los datos del cliente:')
 
     credit_score = st.slider('Puntuación de Crédito', 300, 850, 600)
@@ -107,7 +101,6 @@ else:
     estimated_salary = st.number_input('Salario Estimado', 0.0, 250000.0, 50000.0)
 
     if st.button('Predecir'):
-        # Preparar los datos para la predicción
         input_data = pd.DataFrame({
             'CreditScore': [credit_score],
             'Geography': [geography],
@@ -122,11 +115,19 @@ else:
         })
 
         try:
-            # Hacer la predicción
-            prediction = prediction_model.predict(input_data)
-            probabilities = prediction_model.predict_proba(input_data)
+            prepared_data = prediction_model.prepare_data(input_data)
 
-            # Mostrar resultados
+            # Imprimir características para depuración
+            logger.info(f"Expected columns: {prediction_model.expected_columns}")
+            logger.info(f"Prepared data columns before alignment: {list(prepared_data.columns)}")
+
+            aligned_data = align_columns(prepared_data, prediction_model.expected_columns)
+
+            logger.info(f"Prepared data columns after alignment: {list(aligned_data.columns)}")
+
+            prediction = prediction_model.predict(aligned_data)
+            probabilities = prediction_model.predict_proba(aligned_data)
+
             st.subheader('Resultado de la Predicción:')
             if prediction[0] == 1:
                 st.write('El cliente tiene una alta probabilidad de abandonar.')
@@ -135,7 +136,6 @@ else:
 
             st.write(f'Probabilidad de abandono: {probabilities[0][1]:.2f}')
 
-            # Generar interpretación con LLM
             interpretation = together_ai.interpret_results(prediction[0], probabilities[0], input_data.iloc[0])
             st.subheader('Interpretación del Asistente IA:')
             st.write(interpretation)
@@ -143,13 +143,11 @@ else:
             st.error(f"Error al realizar la predicción: {str(e)}")
             logger.exception("Error al realizar la predicción")
 
-    # Área para preguntas adicionales
     st.header('Preguntas Adicionales:')
     user_question = st.text_input('Haga una pregunta sobre el cliente o la predicción:')
 
     if user_question:
         try:
-            # Generar respuesta con LLM
             llm_response = together_ai.generate_response(user_question, input_data.iloc[0], prediction[0],
                                                          probabilities[0])
             st.subheader('Respuesta del Asistente IA:')
@@ -159,4 +157,5 @@ else:
             logger.exception("Error al generar la respuesta")
 
 st.sidebar.info(
-    'Esta aplicación predice la probabilidad de que un cliente abandone el banco y proporciona interpretaciones basadas en IA.')
+    'Esta aplicación predice la probabilidad de que un cliente abandone el banco y proporciona interpretaciones basadas en IA.'
+)

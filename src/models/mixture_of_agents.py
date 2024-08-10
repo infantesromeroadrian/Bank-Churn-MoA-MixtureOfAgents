@@ -10,12 +10,10 @@ from sklearn.utils.multiclass import unique_labels
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from src.utils.decorators import timer_decorator, log_decorator, error_handler
 
-
-
 class MixtureOfAgents(BaseEstimator, ClassifierMixin):
     def __init__(self, models=None, weights=None, experiment_name="MOA_Experiment", data_dir="../data"):
-        self.models = models or []
-        self.weights = weights
+        self.models = models if models is not None else []
+        self.weights = weights if weights is not None else [1.0] * len(self.models)
         self.classes_ = None
         self.experiment_name = experiment_name
         self.data_dir = data_dir
@@ -27,30 +25,22 @@ class MixtureOfAgents(BaseEstimator, ClassifierMixin):
     def add_model(self, model, weight=1.0):
         """Añade un modelo al conjunto."""
         self.models.append(model)
-        if self.weights is None:
-            self.weights = [1.0] * len(self.models)
-        else:
-            self.weights.append(weight)
+        self.weights.append(weight)
 
     @timer_decorator
     @error_handler
     @log_decorator
     def split_and_save_data(self, X, y, test_size=0.2, val_size=0.2):
         """Divide los datos en conjuntos de entrenamiento, validación y prueba, y los guarda."""
-        # Primera división: separar el conjunto de prueba
         X_train_val, X_test, y_train_val, y_test = train_test_split(X, y, test_size=test_size, stratify=y,
                                                                     random_state=42)
-
-        # Segunda división: separar el conjunto de validación del de entrenamiento
         val_size_adjusted = val_size / (1 - test_size)
         X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=val_size_adjusted,
                                                           stratify=y_train_val, random_state=42)
 
-        # Crear directorios si no existen
         for dir_name in ['train', 'val', 'test']:
             os.makedirs(os.path.join(self.data_dir, dir_name), exist_ok=True)
 
-        # Guardar los conjuntos de datos
         pd.concat([X_train, y_train], axis=1).to_csv(os.path.join(self.data_dir, 'train', 'train_data.csv'),
                                                      index=False)
         pd.concat([X_val, y_val], axis=1).to_csv(os.path.join(self.data_dir, 'val', 'val_data.csv'), index=False)
@@ -65,7 +55,7 @@ class MixtureOfAgents(BaseEstimator, ClassifierMixin):
         """Carga los datos del directorio especificado."""
         file_path = os.path.join(self.data_dir, data_type, f'{data_type}_data.csv')
         data = pd.read_csv(file_path)
-        y = data.pop('target')  # Asumimos que la columna objetivo se llama 'target'
+        y = data.pop('target')
         X = data
         return X, y
 
@@ -85,15 +75,10 @@ class MixtureOfAgents(BaseEstimator, ClassifierMixin):
                     mlflow.log_param(f"weight_{i}", self.weights[i])
 
             mlflow.log_param("n_models", len(self.models))
-
-            # Guardar el modelo completo
             mlflow.sklearn.log_model(self, "moa_model")
-
-            # Registrar el modelo en el Registro de Modelos de MLflow
             model_uri = f"runs:/{run.info.run_id}/moa_model"
             mv = mlflow.register_model(model_uri, "MixtureOfAgents")
 
-            # Transicionar el modelo a 'Production' si es la mejor versión
             client = mlflow.tracking.MlflowClient()
             client.transition_model_version_stage(
                 name="MixtureOfAgents",
@@ -148,6 +133,9 @@ class MixtureOfAgents(BaseEstimator, ClassifierMixin):
 
         return metrics
 
+    @timer_decorator
+    @error_handler
+    @log_decorator
     def save(self, path):
         """Guarda el modelo usando MLflow"""
         mlflow.sklearn.save_model(self, path)

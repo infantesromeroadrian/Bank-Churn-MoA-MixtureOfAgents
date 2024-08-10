@@ -1,8 +1,6 @@
 import os
 from dotenv import load_dotenv
 from together import Together
-from src.utils.decorators import timer_decorator, log_decorator, error_handler
-
 
 class TogetherAIIntegration:
     def __init__(self):
@@ -21,7 +19,6 @@ class TogetherAIIntegration:
             messages=[{"role": "user", "content": prompt}],
             max_tokens=200
         )
-        # Aquí procesarías la respuesta para extraer las nuevas características
         return response.choices[0].message.content
 
     def interpret_results(self, prediction, probabilities, customer_data):
