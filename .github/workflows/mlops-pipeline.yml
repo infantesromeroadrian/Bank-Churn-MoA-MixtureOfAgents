@@ -1,0 +1,42 @@
+name: MLOps Pipeline
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        poetry install
+    - name: Run linter
+      run: |
+        poetry run flake8 .
+    - name: Run tests
+      run: |
+        poetry run pytest tests/
+    - name: Prepare data
+      run: |
+        poetry run python scripts/prepare_data.py
+    - name: Train model
+      run: |
+        poetry run python scripts/train_model.py
+    - name: Evaluate model
+      run: |
+        poetry run python scripts/evaluate_model.py
+    - name: Log model to MLflow
+      run: |
+        poetry run python scripts/log_model.py
+    - name: Deploy model (if on main branch)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        poetry run python scripts/deploy_model.py
