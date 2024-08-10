@@ -29,13 +29,12 @@ def sample_model_and_data(tmp_path):
 def test_prediction(sample_model_and_data):
     model_path, X_test, y_test = sample_model_and_data
 
-    # Creamos la instancia de Prediction sin proporcionar data_prep_path
     prediction = Prediction(model_path)
 
-    # Convertimos X_test a un DataFrame
+    # Crear el DataFrame con los nombres de columna originales
     X_test_df = pd.DataFrame(X_test, columns=[f'feature_{i}' for i in range(X_test.shape[1])])
 
-    # Mapeamos las columnas a los nombres esperados por el modelo
+    # Mapear las columnas a los nombres esperados por el modelo
     column_mapping = {
         'feature_0': 'CreditScore',
         'feature_1': 'Geography',
@@ -50,16 +49,14 @@ def test_prediction(sample_model_and_data):
     }
     X_test_df = X_test_df.rename(columns=column_mapping)
 
-    # Añadimos las columnas calculadas
+    # Añadir las columnas calculadas
     X_test_df['HasBalance'] = (X_test_df['Balance'] > 0).astype(int)
     X_test_df['IsOlderThan40'] = (X_test_df['Age'] > 40).astype(int)
 
-    # Seleccionamos solo las columnas que el modelo espera
-    expected_columns = ['CreditScore', 'Geography', 'Gender', 'Age', 'Tenure', 'Balance',
-                        'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary',
-                        'HasBalance', 'IsOlderThan40', 'feature_10', 'feature_11', 'feature_12',
-                        'feature_13', 'feature_14', 'feature_15', 'feature_16', 'feature_17']
-    X_test_df = X_test_df[expected_columns]
+    # Asegurarse de que todas las columnas originales estén presentes
+    for i in range(10, 20):
+        if f'feature_{i}' not in X_test_df.columns:
+            X_test_df[f'feature_{i}'] = X_test_df[f'feature_{i - 10}']
 
     predictions = prediction.predict(X_test_df)
     probabilities = prediction.predict_proba(X_test_df)
@@ -67,10 +64,9 @@ def test_prediction(sample_model_and_data):
     assert len(predictions) == len(y_test)
     assert probabilities.shape == (len(y_test), 2)
 
-    # Test prediction with explanation
-    sample_data = X_test_df.iloc[:1]  # Tomar la primera muestra
+    sample_data = X_test_df.iloc[:1]
     result = prediction.predict_and_explain(sample_data)
 
-    assert isinstance(result[0], str)  # Explanation should be a string
+    assert isinstance(result[0], str)
     assert "Predicción:" in result[0]
     assert "Probabilidad de Abandono:" in result[0]
