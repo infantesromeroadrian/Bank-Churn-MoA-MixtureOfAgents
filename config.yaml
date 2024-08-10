@@ -1,0 +1,26 @@
+# config.yaml
+project:
+  name: moa-mixtureofagents-agents-project
+  version: 0.1.0
+
+model:
+  name: churn_prediction_moa
+  version: 1.0
+  hyperparameters:
+    logistic_regression_weight: 1.0
+    decision_tree_weight: 0.8
+    random_forest_weight: 1.2
+
+data:
+  raw_data_path: ../data/raw_data/Churn_Modelling.csv
+  processed_data_path: ../data/processed_data/Churn_Modelling_Prepared.csv
+  train_path: ../data/train
+  val_path: ../data/val
+  test_path: ../data/test
+
+mlflow:
+  tracking_uri: http://localhost:5000
+  experiment_name: Churn_Prediction_MOA
+
+environment:
+  python_version: "3.12"
