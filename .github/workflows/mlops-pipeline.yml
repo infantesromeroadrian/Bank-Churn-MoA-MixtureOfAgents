@@ -7,45 +7,75 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.12'
+
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.local/bin" >> $GITHUB_PATH
+
     - name: Install dependencies
       run: |
-        poetry install
-        poetry run pip install pytest
+        poetry install --with dev
+
     - name: List installed packages
       run: |
         poetry run pip list
+
     - name: Run linter
       run: |
         poetry run flake8 src/ --config=.flake8 || echo "Linter found issues"
+
     - name: Run tests
       run: |
-        poetry run pytest || echo "Some tests failed"
+        poetry run pytest -v
+
     - name: Prepare data
       run: |
         poetry run python src/data/bank_data.py || echo "Data preparation failed"
+
     - name: Train model
       run: |
         poetry run python src/models/mixture_of_agents.py || echo "Model training failed"
+
     - name: Evaluate model
       run: |
         poetry run python src/models/prediction.py || echo "Model evaluation failed"
+
     - name: Log model to MLflow
       run: |
         poetry run python src/main.py --log-model || echo "Model logging failed"
+
     - name: Run Streamlit app (for testing)
       run: |
         poetry run streamlit run src/app.py &
         sleep 10
         kill $! || echo "Streamlit app test failed"
+
     - name: Deploy model (if on main branch)
       if: github.ref == 'refs/heads/main'
       run: |
         poetry run python src/deployment/deploy_model.py || echo "Model deployment failed"
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: pytest-results
+        path: pytest-results
+
+    - name: Upload MLflow artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: mlflow-artifacts
+        path: mlruns
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: pytest-results/**/*.xml
