@@ -1,13 +1,20 @@
+import os
+import sys
+
+# Añade el directorio raíz del proyecto al sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import mlflow
 import joblib
-import os
 from src.models.prediction import Prediction
 from src.models.mixture_of_agents import MixtureOfAgents
 from src.features.data_preparation import DataPreparation
 from src.models.together_ai import TogetherAIIntegration
+from src.utils.logging_config import setup_logging
 
 # Configuración de logging
 import logging
