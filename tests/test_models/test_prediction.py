@@ -15,9 +15,9 @@ def sample_model_and_data(tmp_path):
     moa.fit(X_train, y_train)
 
     model_path = tmp_path / "test_model"
-    moa.save(model_path)
+    mlflow.sklearn.save_model(moa, model_path)
 
-    return model_path, X_test, y_test
+    return str(model_path), X_test, y_test
 
 
 def test_prediction(sample_model_and_data):

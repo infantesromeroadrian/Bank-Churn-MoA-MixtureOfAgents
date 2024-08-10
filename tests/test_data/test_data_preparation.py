@@ -25,8 +25,13 @@ def test_data_preparation(sample_data):
     prepared_data = data_prep.prepare_data().get_prepared_data()
 
     assert 'CreditScore' in prepared_data.columns
-    assert 'Geography_France' in prepared_data.columns
-    assert 'Geography_Spain' in prepared_data.columns
-    assert 'Gender_Male' in prepared_data.columns
+    assert 'Geography' in prepared_data.columns
+    assert 'Gender' in prepared_data.columns
     assert 'Exited' in prepared_data.columns
+    assert 'HasBalance' in prepared_data.columns
+    assert 'IsOlderThan40' in prepared_data.columns
     assert prepared_data.shape[0] == 2  # Ensure no rows were dropped
+
+    # Check if numerical encoding is applied
+    assert prepared_data['Geography'].dtype in ['int64', 'float64']
+    assert prepared_data['Gender'].dtype in ['int64', 'float64']
