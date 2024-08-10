@@ -1,24 +1,37 @@
-# Use an official Python runtime as a parent image
+# Usa una imagen base de Python
 FROM python:3.12-slim
 
-# Set the working directory in the container
+# Establece el directorio de trabajo en /app
 WORKDIR /app
 
-# Copy pyproject.toml and poetry.lock (if it exists)
+# Instala las dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instala Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 - && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false
+
+# Copia los archivos de configuración de Poetry
 COPY pyproject.toml poetry.lock* /app/
 
-# Install Poetry
-RUN pip install poetry
+# Instala las dependencias del proyecto
+RUN poetry install --no-root --no-dev
 
-# Install project dependencies
-RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi
-
-# Copy the current directory contents into the container at /app
+# Copia el resto del código de la aplicación
 COPY . /app
 
-# Make port 8000 available to the world outside this container
-EXPOSE 8000
+# Establece la variable de entorno para MLflow
+ENV MLFLOW_TRACKING_URI=http://mlflow:5000
 
-# Run the application
-CMD ["poetry", "run", "python", "app.py"]
+# Expone el puerto en el que se ejecutará la aplicación Streamlit
+EXPOSE 8501
+
+# Comando para ejecutar la aplicación
+CMD ["poetry", "run", "streamlit", "run", "src/app.py"]
