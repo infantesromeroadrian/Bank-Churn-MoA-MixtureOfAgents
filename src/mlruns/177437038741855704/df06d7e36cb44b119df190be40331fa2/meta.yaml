@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/adrianinfantes/Desktop/AIR/CollegeStudies/MachineLearningPath/YouTube/MoA-MixtureOfAgents-Agents-Project/src/mlruns/177437038741855704/df06d7e36cb44b119df190be40331fa2/artifacts
+end_time: 1723278350843
+entry_point_name: ''
+experiment_id: '177437038741855704'
+lifecycle_stage: active
+run_id: df06d7e36cb44b119df190be40331fa2
+run_name: MOA_Evaluation
+run_uuid: df06d7e36cb44b119df190be40331fa2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1723278350810
+status: 3
+tags: []
+user_id: adrianinfantes

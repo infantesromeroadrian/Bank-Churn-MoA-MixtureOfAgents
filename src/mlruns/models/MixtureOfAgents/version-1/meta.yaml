@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1723278764591
+current_stage: Production
+description: null
+last_updated_timestamp: 1723278764593
+name: MixtureOfAgents
+run_id: 7d65f3b622f140eb8bf74ab7add01cc7
+run_link: null
+source: file:///Users/adrianinfantes/Desktop/AIR/CollegeStudies/MachineLearningPath/YouTube/MoA-MixtureOfAgents-Agents-Project/src/mlruns/177437038741855704/7d65f3b622f140eb8bf74ab7add01cc7/artifacts/moa_model
+status: READY
+status_message: null
+storage_location: file:///Users/adrianinfantes/Desktop/AIR/CollegeStudies/MachineLearningPath/YouTube/MoA-MixtureOfAgents-Agents-Project/src/mlruns/177437038741855704/7d65f3b622f140eb8bf74ab7add01cc7/artifacts/moa_model
+user_id: null
+version: 1
