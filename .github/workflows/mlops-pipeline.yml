@@ -18,6 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
+        poetry add --dev flake8
     - name: Run linter
       run: |
         poetry run flake8 src/
@@ -26,7 +27,7 @@ jobs:
         poetry run pytest tests/
     - name: Prepare data
       run: |
-        poetry run python src/data/Churns_Modelling.py
+        poetry run python src/data/bank_data.py
     - name: Train model
       run: |
         poetry run python src/models/mixture_of_agents.py
