@@ -35,3 +35,6 @@ def test_data_preparation(sample_data):
     # Check if numerical encoding is applied
     assert prepared_data['Geography'].dtype in ['int64', 'float64']
     assert prepared_data['Gender'].dtype in ['int64', 'float64']
+
+    # Print prepared_data for debugging
+    print(prepared_data)
