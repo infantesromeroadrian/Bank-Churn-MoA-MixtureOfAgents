@@ -1,26 +1,30 @@
 [tool.poetry]
 name = "moa-mixtureofagents-agents-project"
 version = "0.1.0"
-description = ""
+description = "Mixture of Agents (MoA) project for customer churn prediction"
 authors = ["Adrian Infantes <infantesromeroadrian@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-jupyter = "^1.0.0"
 pandas = "^2.2.2"
 matplotlib = "^3.9.1.post1"
 scikit-learn = "^1.5.1"
 seaborn = "^0.13.2"
 together = "^1.2.7"
 mlflow = "^2.15.1"
-flake8 = "^7.1.1"
-pytest = "^8.3.2"
-
+streamlit = "^1.32.0"
 
 [tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
 flake8 = "^7.1.1"
+pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-v -s"
